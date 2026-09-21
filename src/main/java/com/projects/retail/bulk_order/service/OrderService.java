@@ -4,6 +4,11 @@ import com.projects.retail.bulk_order.dto.request.order.OrderRequestDTO;
 import com.projects.retail.bulk_order.dto.response.GeneralResponseDTO;
 import com.projects.retail.bulk_order.dto.response.order.OrderResponseDTO;
 import com.projects.retail.bulk_order.entity.OrderEntity;
+import com.projects.retail.bulk_order.enums.OrderStatus;
+import com.projects.retail.bulk_order.event.OrderConfirmedEvent;
+import com.projects.retail.bulk_order.event.OrderCreatedEvent;
+import com.projects.retail.bulk_order.event.PaymentResultEvent;
+import com.projects.retail.bulk_order.kafka.KafkaProducer;
 import com.projects.retail.bulk_order.mapper.OrderMapper;
 import com.projects.retail.bulk_order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +26,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final KafkaProducer kafkaProducer;
 
     private <T>ResponseEntity<T> returnResponseEntity(HttpStatus status, T message){
         return ResponseEntity.status(status).body(message);
@@ -54,10 +60,46 @@ public class OrderService {
         try{
             OrderEntity order = orderMapper.convertDTOToEntity(dto);
             orderRepository.save(order);
-            // kafka call
+            kafkaProducer.sendOrderCreated(OrderCreatedEvent.builder().email(order.getOrderEmail()).orderId(order.getOrderId()).totalAmount(order.getTotalAmount()).build());
             return returnResponseEntity(HttpStatus.CREATED, GeneralResponseDTO.builder().message("SUCCESS").data(orderMapper.convertEntityToDTO(order)).build());
         } catch (Exception e) {
             return returnResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, GeneralResponseDTO.builder().message("Error Occurred : "+e.getMessage()).build());
         }
+    }
+
+    public void markOrderProcessing(UUID orderId) {
+        OrderEntity order = orderRepository.findByOrderId(orderId);
+
+        if (order == null) {
+            throw new IllegalArgumentException("Order not found: " + orderId);
+        }
+
+        order.setStatus(OrderStatus.PROCESSING);
+        orderRepository.save(order);
+    }
+
+    public void handlePaymentResult(PaymentResultEvent event) {
+        OrderEntity order = orderRepository.findByOrderId(event.getOrderId());
+
+        if (order == null) {
+            throw new IllegalArgumentException("Order not found: " + event.getOrderId());
+        }
+
+        if (!event.isSuccess()) {
+            order.setStatus(OrderStatus.FAILED);
+            orderRepository.save(order);
+            return;
+        }
+
+        order.setStatus(OrderStatus.CONFIRMED);
+        orderRepository.save(order);
+
+        kafkaProducer.sendOrderConfirmed(
+                OrderConfirmedEvent.builder()
+                        .orderId(order.getOrderId())
+                        .email(order.getOrderEmail())
+                        .totalAmount(order.getTotalAmount())
+                        .build()
+        );
     }
 }

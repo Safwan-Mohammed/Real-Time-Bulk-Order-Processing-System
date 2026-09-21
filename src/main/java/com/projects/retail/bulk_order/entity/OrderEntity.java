@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "Order")
+@Entity
+@Table(name = "Orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

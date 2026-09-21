@@ -9,10 +9,12 @@ import com.projects.retail.bulk_order.entity.ProductEntity;
 import com.projects.retail.bulk_order.enums.OrderStatus;
 import com.projects.retail.bulk_order.repository.ProductRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 @AllArgsConstructor
 public class OrderMapper {
 

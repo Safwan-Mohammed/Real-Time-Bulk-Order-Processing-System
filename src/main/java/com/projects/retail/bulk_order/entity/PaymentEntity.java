@@ -8,10 +8,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
 @Table(name = "Transaction")
 @Data
 @Builder
@@ -24,6 +26,7 @@ public class PaymentEntity {
     private long id;
 
     @Column(nullable = false, updatable = false, unique = true)
+    @UuidGenerator
     private UUID txnId;
 
     @Column(nullable = false, updatable = false, unique = true)

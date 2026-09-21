@@ -12,7 +12,7 @@ import org.hibernate.annotations.UuidGenerator;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table(name="User")
+@Table(name="Users")
 @Data
 @Builder
 @NoArgsConstructor

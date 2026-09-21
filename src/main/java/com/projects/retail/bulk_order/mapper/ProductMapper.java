@@ -5,7 +5,9 @@ import com.projects.retail.bulk_order.dto.request.product.ProductUpdateRequestDT
 import com.projects.retail.bulk_order.dto.response.product.ProductResponseDTO;
 import com.projects.retail.bulk_order.entity.ProductEntity;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @AllArgsConstructor
 public class ProductMapper {
 
