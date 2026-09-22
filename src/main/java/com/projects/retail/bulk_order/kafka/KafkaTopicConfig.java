@@ -16,6 +16,13 @@ public class KafkaTopicConfig {
                 .build();
     }
 
+    @Bean public NewTopic inventoryResultTopic() {
+        return TopicBuilder.name("inventory-result")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
     @Bean
     public NewTopic paymentResultTopic() {
         return TopicBuilder.name("payment-result")

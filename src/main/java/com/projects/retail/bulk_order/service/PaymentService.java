@@ -3,7 +3,6 @@ package com.projects.retail.bulk_order.service;
 import com.projects.retail.bulk_order.entity.OrderEntity;
 import com.projects.retail.bulk_order.entity.PaymentEntity;
 import com.projects.retail.bulk_order.enums.TxnStatus;
-import com.projects.retail.bulk_order.event.OrderCreatedEvent;
 import com.projects.retail.bulk_order.event.PaymentResultEvent;
 import com.projects.retail.bulk_order.kafka.KafkaProducer;
 import com.projects.retail.bulk_order.repository.OrderRepository;
@@ -21,11 +20,12 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final KafkaProducer kafkaProducer;
 
-    public void processPayment(OrderCreatedEvent event) {
-        OrderEntity order = orderRepository.findByOrderId(event.getOrderId());
+    public void processPayment(UUID orderId) {
+
+        OrderEntity order = orderRepository.findByOrderId(orderId);
 
         if (order == null) {
-            throw new IllegalArgumentException("Order not found: " + event.getOrderId());
+            throw new IllegalArgumentException("Order not found: " + orderId);
         }
 
         PaymentEntity payment = PaymentEntity.builder()
@@ -36,9 +36,11 @@ public class PaymentService {
 
         payment = paymentRepository.save(payment);
 
+        // Simulated payment
         boolean paymentSuccess = true;
 
         payment.setTxnStatus(paymentSuccess ? TxnStatus.SUCCESS : TxnStatus.FAILED);
+
         paymentRepository.save(payment);
 
         kafkaProducer.sendPaymentResult(

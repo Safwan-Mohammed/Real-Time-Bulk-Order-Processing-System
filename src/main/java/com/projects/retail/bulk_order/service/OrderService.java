@@ -67,14 +67,12 @@ public class OrderService {
         }
     }
 
-    public void markOrderProcessing(UUID orderId) {
+    public void markOrderFailed(UUID orderId) {
+
         OrderEntity order = orderRepository.findByOrderId(orderId);
+        if (order == null) throw new IllegalArgumentException("Order not found: " + orderId);
 
-        if (order == null) {
-            throw new IllegalArgumentException("Order not found: " + orderId);
-        }
-
-        order.setStatus(OrderStatus.PROCESSING);
+        order.setStatus(OrderStatus.FAILED);
         orderRepository.save(order);
     }
 
