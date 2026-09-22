@@ -73,4 +73,15 @@ public class UserService {
         }
     }
 
+    public ResponseEntity<GeneralResponseDTO> login(UserRequestDTO userRequestDTO){
+        try{
+            UserEntity user = userRepository.findByEmail(userRequestDTO.getEmail());
+            if(user == null || !bCryptPasswordEncoder.matches(userRequestDTO.getPassword(), user.getPassword()))
+                return returnResponseEntity(HttpStatus.UNAUTHORIZED, GeneralResponseDTO.builder().message("Invalid Credentials").build());
+            return returnResponseEntity(HttpStatus.OK, GeneralResponseDTO.builder().message("Login Successful").build());
+        } catch (Exception e) {
+            return returnResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, GeneralResponseDTO.builder().message("Error Occured : " + e.getMessage()).build());
+        }
+    }
+
 }

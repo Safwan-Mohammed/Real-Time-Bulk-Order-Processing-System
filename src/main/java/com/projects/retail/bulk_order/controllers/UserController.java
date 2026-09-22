@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(){
-        return null;
+    public ResponseEntity<?> login(@RequestBody UserRequestDTO userRequestDTO){
+        return userService.login(userRequestDTO);
     }
 }

@@ -10,6 +10,7 @@ import com.projects.retail.bulk_order.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -69,7 +70,11 @@ public class ProductService {
             ProductEntity product = productRepository.findByProductId(dto.getProductId());
             if(product == null)
                 return returnResponseEntity(HttpStatus.NOT_FOUND, GeneralResponseDTO.builder().message("Product doesnt exist").build());
-            product = productMapper.convertDTOToEntity(dto);
+            product.setProductCode(dto.getProductCode());
+            product.setProductName(dto.getProductName());
+            product.setProductDesc(dto.getProductDesc());
+            product.setStockQty(dto.getStockQty());
+            product.setPrice(dto.getPrice());
             productRepository.save(product);
             return returnResponseEntity(HttpStatus.OK, GeneralResponseDTO.builder().message("Updation Success").data(productMapper.convertEntityToDTO(product)).build());
         } catch (Exception e) {
@@ -84,6 +89,8 @@ public class ProductService {
                 return returnResponseEntity(HttpStatus.NOT_FOUND, GeneralResponseDTO.builder().message("Product doesnt exist").build());
             productRepository.deleteById(product.getId());
             return returnResponseEntity(HttpStatus.OK, GeneralResponseDTO.builder().message("Deletion Success").build());
+        } catch (DataIntegrityViolationException e) {
+            return returnResponseEntity(HttpStatus.CONFLICT, GeneralResponseDTO.builder().message("Product cannot be deleted because it is used by an order").build());
         } catch (Exception e) {
             return returnResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, GeneralResponseDTO.builder().message("Error Occurred : "+e.getMessage()).build());
         }
